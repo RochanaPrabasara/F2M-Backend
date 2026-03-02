@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: farm2market-backend
+    env: node
+    region: oregon
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: CORS_ORIGIN
+        # set this to your front‑end URL when deploying
+        value: "http://localhost:5173"
+      - key: JWT_SECRET
+        value: "<replace-with-secret>"
+      - key: JWT_EXPIRES_IN
+        value: "7d"
+      - key: PREDICTION_API_URL
+        value: "http://127.0.0.1:5000"
+      - key: EMAIL_USER
+        value: ""
+      - key: EMAIL_APP_PASS
+        value: ""
+
+  - type: postgres
+    name: farm2market-db
+    plan: starter
+    # Render will automatically populate DATABASE_URL for you when the
+    # database is created; no need to specify it here
