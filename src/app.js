@@ -23,9 +23,14 @@ const Message = require('./models/Message'); // ← NEW
 const app = express();
 const server = http.createServer(app);
 
+// parse allowed origin(s) from env, fall back to the local dev address
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((u) => u.trim());
+
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
   },
