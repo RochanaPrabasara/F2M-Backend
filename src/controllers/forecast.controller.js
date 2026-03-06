@@ -2,7 +2,10 @@
 const axios = require('axios');
 
 const PREDICTION_API_URL =
-  process.env.PREDICTION_API_URL || 'http://127.0.0.1:5000';
+  (process.env.PREDICTION_API_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
+const PREDICTION_API_TIMEOUT_MS = Number(
+  process.env.PREDICTION_API_TIMEOUT_MS || 30000
+);
 
 exports.predictPrices = async (req, res) => {
   try {
@@ -31,11 +34,9 @@ exports.predictPrices = async (req, res) => {
       weather: weather || undefined,
     };
 
-    const flaskRes = await axios.post(
-      `${PREDICTION_API_URL}/predict`,
-      flaskBody,
-      { timeout: 10000 }
-    );
+    const flaskRes = await axios.post(`${PREDICTION_API_URL}/predict`, flaskBody, {
+      timeout: PREDICTION_API_TIMEOUT_MS,
+    });
 
     return res.status(200).json(flaskRes.data);
   } catch (error) {
@@ -43,6 +44,13 @@ exports.predictPrices = async (req, res) => {
 
     if (error.response) {
       return res.status(error.response.status || 500).json(error.response.data);
+    }
+
+    if (error.code === 'ECONNABORTED') {
+      return res.status(504).json({
+        success: false,
+        message: `Forecast service timed out after ${PREDICTION_API_TIMEOUT_MS}ms`,
+      });
     }
 
     return res
@@ -54,7 +62,7 @@ exports.predictPrices = async (req, res) => {
 exports.getCommodities = async (_req, res) => {
   try {
     const flaskRes = await axios.get(`${PREDICTION_API_URL}/commodities`, {
-      timeout: 10000,
+      timeout: PREDICTION_API_TIMEOUT_MS,
     });
     return res.status(200).json(flaskRes.data);
   } catch (error) {
@@ -62,6 +70,14 @@ exports.getCommodities = async (_req, res) => {
     if (error.response) {
       return res.status(error.response.status || 500).json(error.response.data);
     }
+
+    if (error.code === 'ECONNABORTED') {
+      return res.status(504).json({
+        success: false,
+        message: `Forecast service timed out after ${PREDICTION_API_TIMEOUT_MS}ms`,
+      });
+    }
+
     return res
       .status(500)
       .json({ success: false, message: 'Forecast service unavailable' });
@@ -71,7 +87,7 @@ exports.getCommodities = async (_req, res) => {
 exports.getRegions = async (_req, res) => {
   try {
     const flaskRes = await axios.get(`${PREDICTION_API_URL}/regions`, {
-      timeout: 10000,
+      timeout: PREDICTION_API_TIMEOUT_MS,
     });
     return res.status(200).json(flaskRes.data);
   } catch (error) {
@@ -79,6 +95,14 @@ exports.getRegions = async (_req, res) => {
     if (error.response) {
       return res.status(error.response.status || 500).json(error.response.data);
     }
+
+    if (error.code === 'ECONNABORTED') {
+      return res.status(504).json({
+        success: false,
+        message: `Forecast service timed out after ${PREDICTION_API_TIMEOUT_MS}ms`,
+      });
+    }
+
     return res
       .status(500)
       .json({ success: false, message: 'Forecast service unavailable' });
